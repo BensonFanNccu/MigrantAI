@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  </head>
+  <body>
+    <h3>Chat Test</h3>
+    <div>
+      <label>User ID: <input id="userId" value="alice" /></label>
+      <label>Room: <input id="roomId" value="room1" /></label>
+      <button onclick="connect()">Connect</button>
+    </div>
+    <div
+      id="log"
+      style="
+        white-space: pre-wrap;
+        border: 1px solid #ccc;
+        padding: 8px;
+        height: 200px;
+        overflow: auto;
+      "
+    ></div>
+    <div>
+      <input id="msg" placeholder="Type a message" />
+      <button onclick="send()">Send</button>
+    </div>
+
+    <script>
+      let socket;
+      function log(txt) {
+        document.getElementById("log").textContent += txt + "\n";
+      }
+
+      function connect() {
+        const userId = document.getElementById("userId").value;
+        const room = document.getElementById("roomId").value;
+        socket = io("http://localhost:8000", {
+          auth: { user_id: userId },
+          //   transports: ["websocket"],
+        });
+
+        socket.on("connect", () => {
+          log(`[WS] Connected as ${userId}`);
+          socket.emit("join_chat", { user_id: userId, chatroom_id: room });
+        });
+
+        socket.on("status", (data) => log(`[Status] ${data.message}`));
+        socket.on("receive_message", (data) => {
+          log(
+            `[${data.chatroom_id}] ${data.from} to ${data.to}: ${data.message}`
+          );
+        });
+      }
+
+      function send() {
+        const userId = document.getElementById("userId").value;
+        const room = document.getElementById("roomId").value;
+        const text = document.getElementById("msg").value;
+        const other = userId === "alice" ? "bob" : "alice";
+
+        socket.emit("send_message", {
+          chatroom_id: room,
+          sender_id: userId,
+          receiver_id: other,
+          text: text,
+          sender_lang: "en",
+          receiver_lang: "zh-TW",
+        });
+      }
+    </script>
+  </body>
+</html>

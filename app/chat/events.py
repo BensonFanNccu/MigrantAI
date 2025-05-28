@@ -13,9 +13,9 @@ def mock_translate(text, lang):
 def register_chat_handlers(socketio):
 
     @socketio.on("connect")
-    def on_connect(auth):
+    def on_connect():
         # auth is a dict { 'user_id': 'alice' }
-        user_id = auth and auth.get("user_id")
+        user_id = request.args.get("user_id")
         if not user_id:
             print("[WS] Rejecting connection—no user_id")
             return False  # still returns 401 if missing

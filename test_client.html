@@ -35,8 +35,7 @@
         const userId = document.getElementById("userId").value;
         const room = document.getElementById("roomId").value;
         socket = io("http://localhost:8000", {
-          auth: { user_id: userId },
-          //   transports: ["websocket"],
+          query: { user_id: userId },
         });
 
         socket.on("connect", () => {

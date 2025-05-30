@@ -7,7 +7,7 @@
     <h3>Chat Test</h3>
     <div>
       <label>User ID: <input id="userId" value="alice" /></label>
-      <label>Room: <input id="roomId" value="room1" /></label>
+      <label>Room: <input id="roomId" value="2" /></label>
       <button onclick="connect()">Connect</button>
     </div>
     <div
@@ -55,7 +55,7 @@
         const userId = document.getElementById("userId").value;
         const room = document.getElementById("roomId").value;
         const text = document.getElementById("msg").value;
-        const other = userId === "alice" ? "bob" : "alice";
+        const other = userId === "david" ? "maria" : "david";
 
         socket.emit("send_message", {
           chatroom_id: room,

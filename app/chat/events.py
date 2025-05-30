@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
-# from .models import Message, db
+from ..models   import Message, Chat, db
 from datetime import datetime
 
 
@@ -53,25 +53,34 @@ def register_chat_handlers(socketio):
         s_lang = data["sender_lang"]
         r_lang = data["receiver_lang"]
 
-        # 1) Persist to DB
-        # msg = Message(
-        #     chatroom_id=chatroom_id,
-        #     sender_id=sender,
-        #     receiver_id=receiver,
-        #     text=text
-        # )
-        # db.session.add(msg)
-        # db.session.commit()
 
-        # 2) Translate for each party
         text_for_receiver = mock_translate(text, r_lang)
         text_for_sender = mock_translate(text, s_lang)
+
+        
+        sned_time = datetime.now()
+        msg = Message(
+        text_sender = text_for_sender,
+        text_reciever = text_for_receiver,
+        time=sned_time,
+        sender_id=sender,
+        receiver_id=receiver
+        )
+        db.session.add(msg)
+        db.session.commit()
+
+        chat_link = Chat(
+        message_id=msg.id,
+        chatroom_id=chatroom_id
+        )
+        db.session.add(chat_link)
+        db.session.commit()
 
         payload = {
             "chatroom_id": chatroom_id,
             "from": sender,
             "to": receiver,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": sned_time.isoformat(),
         }
 
         # push to receiver

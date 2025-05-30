@@ -69,7 +69,7 @@ def register_chat_handlers(socketio):
             terms_recv = recv_res.get("specialized_terms", [])
 
         else:
-            text_for_receiver, text_for_receiver = text, text
+            text_for_receiver, text_for_sender = text, text
             terms_recv = []
 
         send_time = datetime.now()

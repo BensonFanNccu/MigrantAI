@@ -34,4 +34,8 @@ def create_app(config_object=None):
     from .chat.events import register_chat_handlers
     register_chat_handlers(socketio)
 
+    # register translation blueprint
+    from .translate.trans import trans_bp
+    app.register_blueprint(trans_bp, url_prefix='/translate')
+
     return app

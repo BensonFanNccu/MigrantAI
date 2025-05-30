@@ -1,7 +1,8 @@
 from flask import Flask, request
 from flask_socketio import SocketIO, join_room, leave_room, emit
 
-from ..models   import Message, Chat, db
+from ..models import Message, Chat, db
+from ..translate.trans import translate_helper
 from datetime import datetime
 
 
@@ -53,45 +54,58 @@ def register_chat_handlers(socketio):
         s_lang = data["sender_lang"]
         r_lang = data["receiver_lang"]
 
+        if s_lang != r_lang:
 
-        text_for_receiver = mock_translate(text, r_lang)
-        text_for_sender = mock_translate(text, s_lang)
+            recv_res = translate_helper(s_lang, r_lang, text)
+            # send_res = translate_helper(s_lang, s_lang, text)
 
-        
-        sned_time = datetime.now()
+            if recv_res["status"] != "success":
+                emit("error", {"message": "translation failed"})
+                return
+
+            text_for_receiver = recv_res["translation"]
+            text_for_sender = text
+
+            terms_recv = recv_res.get("specialized_terms", [])
+
+        else:
+            text_for_receiver, text_for_receiver = text, text
+            terms_recv = []
+
+        send_time = datetime.now()
         msg = Message(
-        text_sender = text_for_sender,
-        text_reciever = text_for_receiver,
-        time=sned_time,
-        sender_id=sender,
-        receiver_id=receiver
+            text_sender=text_for_sender,
+            text_reciever=text_for_receiver,
+            time=send_time,
+            sender_id=sender,
+            receiver_id=receiver,
         )
         db.session.add(msg)
         db.session.commit()
 
-        chat_link = Chat(
-        message_id=msg.id,
-        chatroom_id=chatroom_id
-        )
+        chat_link = Chat(message_id=msg.id, chatroom_id=chatroom_id)
         db.session.add(chat_link)
         db.session.commit()
 
-        payload = {
-            "chatroom_id": chatroom_id,
-            "from": sender,
-            "to": receiver,
-            "timestamp": sned_time.isoformat(),
+        base = {
+            "chatroom_id": data["chatroom_id"],
+            "from": data["sender_id"],
+            "to": data["receiver_id"],
+            "timestamp": send_time.isoformat(),
         }
 
-        # push to receiver
-        payload["message"] = text_for_receiver
-        emit("receive_message", payload, room=receiver)
+        emit(
+            "receive_message",
+            {**base, "message": text_for_receiver, "specialized_terms": terms_recv},
+            room=data["receiver_id"],
+        )
 
-        # echo back to sender
-        payload["message"] = text_for_sender
-        emit("receive_message", payload, room=sender)
-
-        # 3) Emit real-time via SocketIO
+        # 2) echo back to sender
+        emit(
+            "receive_message",
+            {**base, "message": text_for_sender, "specialized_terms": []},
+            room=data["sender_id"],
+        )
 
     @socketio.on("disconnect")
     def on_disconnect():

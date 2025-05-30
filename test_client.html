@@ -7,7 +7,7 @@
     <h3>Chat Test</h3>
     <div>
       <label>User ID: <input id="userId" value="alice" /></label>
-      <label>Room: <input id="roomId" value="room1" /></label>
+      <label>Room: <input id="roomId" value="1" /></label>
       <button onclick="connect()">Connect</button>
     </div>
     <div
@@ -45,8 +45,14 @@
 
         socket.on("status", (data) => log(`[Status] ${data.message}`));
         socket.on("receive_message", (data) => {
+          const terms = data.specialized_terms
+            .map((term) => {
+              const [key, value] = Object.entries(term)[0];
+              return `${key}: ${value}`;
+            })
+            .join(", ");
           log(
-            `[${data.chatroom_id}] ${data.from} to ${data.to}: ${data.message}`
+            `[${data.chatroom_id}] ${data.from} to ${data.to}: ${data.message} term explanations: ${terms}`
           );
         });
       }
@@ -55,15 +61,15 @@
         const userId = document.getElementById("userId").value;
         const room = document.getElementById("roomId").value;
         const text = document.getElementById("msg").value;
-        const other = userId === "alice" ? "bob" : "alice";
+        const other = userId === "david" ? "maria" : "david";
 
         socket.emit("send_message", {
           chatroom_id: room,
           sender_id: userId,
           receiver_id: other,
           text: text,
-          sender_lang: "en",
-          receiver_lang: "zh-TW",
+          sender_lang: "zh-TW",
+          receiver_lang: "english",
         });
       }
     </script>

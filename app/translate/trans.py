@@ -4,7 +4,7 @@ import json
 
 trans_bp = Blueprint("trans", __name__)
 
-client = OpenAI(api_key = "<OPENAI_API_KEY")  # 這裡替換成 OpenAI API 金鑰
+client = OpenAI(api_key = "<OPENAI_API_KEY>")  # 這裡替換成 OpenAI API 金鑰
 
 @trans_bp.route("/", methods = ["POST"])
 # @jwt_required()

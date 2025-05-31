@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app import db
-from app.models import User, Chatroom
+from app.models import User, Chatroom, Chat, Message
 
 
 auth_ct = Blueprint("chat", __name__)
@@ -65,3 +65,39 @@ def get_chatrooms():
         "language": user.language,
         "chatrooms": result
     }), 200
+    
+    
+@auth_ct.route("/get_messages", methods=["POST"])
+def get_messages():
+    post_data = request.get_json()
+    
+    user_id = post_data.get("user_id")
+    chatroom_id = post_data.get("chatroom_id")
+    
+    user = User.query.filter_by(id=user_id).first()
+    
+    if not user:
+        return jsonify({"status": "failure", "message": "User does not exist"}), 404
+    
+    chat_entries = Chat.query.filter_by(chatroom_id=chatroom_id).all()
+    message_ids = [c.message_id for c in chat_entries]
+    messages = Message.query.filter(Message.id.in_(message_ids)).order_by(Message.time.asc()).all()
+    result = []
+    for msg in messages:        
+        result.append({
+            'message_id': msg.id,
+            'text_sender': msg.text_sender,
+            'text_reciever': msg.text_reciever,
+            'timestamp': msg.time.isoformat(),
+            'sender_name': msg.sender_id,
+            'receiver_name': msg.receiver_id,
+        })
+        
+    return jsonify({
+        "status": "success",
+        "username": user_id,
+        "chatroom_id": chatroom_id,
+        "messages": "Fetch messages successfully",
+        "messages": result
+    }), 200
+    

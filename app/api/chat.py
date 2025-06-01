@@ -71,10 +71,10 @@ def get_chatrooms():
 def get_messages():
     post_data = request.get_json()
     
-    user_id = post_data.get("user_id")
+    username = post_data.get("username")
     chatroom_id = post_data.get("chatroom_id")
     
-    user = User.query.filter_by(id=user_id).first()
+    user = User.query.filter_by(username=username).first()
     
     if not user:
         return jsonify({"status": "failure", "message": "User does not exist"}), 404

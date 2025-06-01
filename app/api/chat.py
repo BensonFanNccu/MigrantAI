@@ -48,7 +48,8 @@ def get_chatrooms():
     
     result = []
     for room in chatrooms:
-        other_id = room.user_2 if room.user_1 == user.id else room.user_1
+        # other_id = room.user_2 if room.user_1 == user.id else room.user_1
+        other_id = room.user_2 if int(room.user_1) == int(user.id) else room.user_1
         other_user = User.query.get(other_id)
         
         result.append({
@@ -74,6 +75,7 @@ def get_messages():
     username = post_data.get("username")
     chatroom_id = post_data.get("chatroom_id")
     
+    print(f"Fetching messages for user: {username}, chatroom_id: {chatroom_id}")
     user = User.query.filter_by(username=username).first()
     
     if not user:
@@ -95,7 +97,7 @@ def get_messages():
         
     return jsonify({
         "status": "success",
-        "username": user_id,
+        "username": username,
         "chatroom_id": chatroom_id,
         "messages": "Fetch messages successfully",
         "messages": result
